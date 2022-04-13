@@ -31,9 +31,6 @@ def message_from_server(message):
 
 
 def create_message(sock, account_name='Guest'):
-    """Функция запрашивает текст сообщения и возвращает его.
-    Так же завершает работу при вводе подобной комманды
-    """
     message = input('Введите сообщение для отправки или \'!!!\' для завершения работы: ')
     if message == '!!!':
         sock.close()
@@ -125,25 +122,6 @@ def main():
     #     CLIENT_LOGGER.info(f'Завершение работы клиента')
     #     my_sock.close()
     #     CLIENT_LOGGER.info(f'Клиент остановлен')
-        # serv_ip, serv_port = handle_parameters(ip='127.0.0.1', port=DEF_PORT)
-        # if serv_ip == '':
-        #     CLIENT_LOGGER.error(f'Параметр -a является обязательным. Напимер: -a 127.0.0.1')
-        #     # print(' | ОШИБКА: Параметр -a является обязательным. Напимер: -a 127.0.0.1')
-        #     my_sock.close()
-        #     # raise ValueError
-        #     return
-        # try:
-        #     CLIENT_LOGGER.info(f'Попытка соедиения: ip={serv_ip} port={serv_port}')
-        #     client_sock.connect((serv_ip, serv_port))
-        #     CLIENT_LOGGER.info(f'Отправляю сообщение: {presence_message}')
-        #     send_message(client_sock, presence_message)
-        #     CLIENT_LOGGER.debug(f'Получено сообщение от сервера: ip={serv_ip} port={serv_port}')
-        #     server_answer = get_message(client_sock)
-        #     CLIENT_LOGGER.debug(f'Содержимое сообщения: {handle_answer(server_answer)}')
-        #
-        # except ConnectionResetError:
-        #     CLIENT_LOGGER.info(f'Сервер {serv_ip}:{serv_port} разорвал соединение.')
-        # client_sock.close()
 
 
 if __name__ == '__main__':

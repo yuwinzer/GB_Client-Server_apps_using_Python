@@ -7,59 +7,50 @@ import logging
 sys.path.append(os.path.join(os.getcwd(), '..'))
 from common.globals import ENCODING, MAX_PACKAGE_LENGTH
 import log.client_log_config
-# import log.decorator
 from log.decorator import log
+LOGGER = logging.getLogger('server') if 'server.py' in sys.argv[0] else logging.getLogger('client')
 
 
 @log
 def get_message(sender_sock):
-    LOGGER = get_message.log
     try:
         encoded_data = sender_sock.recv(MAX_PACKAGE_LENGTH)
     except (ConnectionResetError, ConnectionError, ConnectionAbortedError):
         LOGGER.debug(f'Соединение разорвано/потеряно.')
-        # sender_sock.close()
         sys.exit(1)
-    str_response, response = None, None
-    if isinstance(encoded_data, bytes):
-        str_response = encoded_data.decode(ENCODING)
-        # LOGGER.debug(f'декодировано')
-        if isinstance(str_response, str):
-            try:
-                response = json.loads(str_response)
-            except json.JSONDecodeError:
-                LOGGER.error('Не удалось декодировать полученную Json строку.')
-                sys.exit(1)
-            # LOGGER.debug(f'распаковано')
-            if isinstance(response, dict):
-                # LOGGER.debug(f'успех')
-                return response
+    if encoded_data:
+        str_response, response = None, None
+        if isinstance(encoded_data, bytes):
+            str_response = encoded_data.decode(ENCODING)
+            if isinstance(str_response, str):
+                try:
+                    response = json.loads(str_response)
+                except json.JSONDecodeError:
+                    LOGGER.error(f'Не удалось декодировать полученную Json строку: {str_response}.')
+                    sys.exit(1)
+                if isinstance(response, dict):
+                    return response
+                else:
+                    LOGGER.error(f'ОШИБКА сообщение: "{response}" не является DICT')
             else:
-                LOGGER.error(f'ОШИБКА сообщение: "{response}" не является DICT')
+                LOGGER.error(f'ОШИБКА сообщение: "{str_response}" не является STR')
         else:
-            LOGGER.error(f'ОШИБКА сообщение: "{str_response}" не является STR')
-    else:
-        LOGGER.error(f'ОШИБКА сообщение: "{str_response}" не декодируется как {ENCODING}')
-    sender_sock.close()
-    ValueError()
-
-
+            LOGGER.error(f'ОШИБКА сообщение: "{str_response}" не декодируется как {bytes}')
+        sender_sock.close()
+        ValueError()
 
 
 @log
 def send_message(receiver_sock, message):
-    LOGGER = send_message.log
     if not isinstance(message, dict):
         LOGGER.error(f'ОШИБКА сообщение "{message}" не является DICT')
-        # receiver_sock.close()
         raise TypeError
-    # LOGGER.info(f'Отправляю сообщение: {message}')
+    LOGGER.debug(f'Отправляю сообщение: {message}')
     receiver_sock.send(json.dumps(message).encode(ENCODING))
 
 
 @log
 def is_ip_bad(ip: str):
-    LOGGER = is_ip_bad.log
     if not isinstance(ip, str):
         LOGGER.error(f'ОШИБКА: Полученный IP: {ip} не является STR')
         ValueError()
@@ -70,7 +61,6 @@ def is_ip_bad(ip: str):
 
 @log
 def is_port_bad(port):
-    LOGGER = is_port_bad.log
     if isinstance(port, int):
         return not 1024 < port < 65535
     if isinstance(port, str):
@@ -80,7 +70,6 @@ def is_port_bad(port):
 
 @log
 def is_mode_bad(mode: str):
-    LOGGER = is_mode_bad.log
     if not isinstance(mode, str):
         LOGGER.error(f'ОШИБКА: Полученный режим MODE: {mode} не является STR')
         ValueError()
@@ -91,7 +80,6 @@ def is_mode_bad(mode: str):
 
 @log
 def handle_parameters(ip: str, port: int, mode: str):
-    LOGGER = handle_parameters.log
     argv = sys.argv
     bad_ip, bad_port, bad_mode, result_ip, result_port, result_mode = True, True, True, None, None, None
     if len(argv) > 1:
@@ -116,7 +104,6 @@ def handle_parameters(ip: str, port: int, mode: str):
                     LOGGER.error(f'ОШИБКА параметра запуска -> (MODE={result_mode}) Ожидается: -m listen или -m send')
     else:
         LOGGER.info(f'Параметры запуска не указаны')
-        # print(f'Параметры запуска не указаны.', end='')
     if bad_ip:
         if is_ip_bad(ip):
             LOGGER.error(f'ОШИБКА параметра переданного в ф-ю -> (IP={ip})')
